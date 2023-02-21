@@ -1,0 +1,59 @@
+version: "3.7"
+services:
+
+  nginx-web-server:
+    container_name: nginx-web-server
+    build:
+      context: ./docker/nginx
+      args:
+        UID: $U_ID
+    ports:
+      - 8888:80
+    volumes:
+      - ./public:/appdata/www/public
+    depends_on:
+      - php-web-server
+    networks:
+      - laravel-nginx-php-postgresql-network
+
+
+  php-web-server:
+    container_name: php-web-server
+    build:
+      context: docker/php
+      args:
+        UID: $U_ID
+    env_file:
+      - ./docker/php/php_variables.env
+    volumes:
+      - ./:/appdata/www
+      - ./docker/php/xdebug-linux.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      # - ./docker/php/xdebug-macos.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ~/.ssh/id_rsa:/home/appuser/.ssh/id_rsa
+    depends_on:
+      - postgresql-db
+    networks:
+      - laravel-nginx-php-postgresql-network
+
+
+
+  postgresql-db:
+    container_name: postgresql-db
+    build:
+      context: ./docker/database
+    ports:
+      - 54320:5432
+    restart: always
+    env_file:
+      - ./docker/database/database_variables.env
+    volumes:
+      - postgresql-db-data:/var/lib/postgresql/data
+    networks:
+      - laravel-nginx-php-postgresql-network
+
+volumes:
+  postgresql-db-data:
+
+networks:
+  laravel-nginx-php-postgresql-network:
+    external: true
