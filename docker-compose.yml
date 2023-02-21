@@ -42,7 +42,7 @@ services:
     build:
       context: ./docker/database
     ports:
-      - 54320:5432
+      - 5432:5432
     restart: always
     env_file:
       - ./docker/database/database_variables.env
